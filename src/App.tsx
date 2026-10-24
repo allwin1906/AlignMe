@@ -1,3 +1,7 @@
+import { AppShell } from '@/components/shell/AppShell'
+import { usePostureEngine } from '@/hooks/usePostureEngine'
+
 export default function App() {
-  return <main className="p-6">AlignMe</main>
+  const model = usePostureEngine()
+  return <AppShell model={model} />
 }

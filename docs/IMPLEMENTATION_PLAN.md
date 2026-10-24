@@ -114,7 +114,7 @@ Layout: one responsive dashboard (grid on desktop, stacked on phones), with tabs
 | Reading cards | Raw and smoothed pitch and roll |
 | Calibration panel | Baseline values, Calibrate and Reset buttons, `NOT_CALIBRATED` empty state |
 | Settings panel | Threshold, persistence and smoothing sliders with numeric inputs, validated against the bounds above |
-| Simulation controls | Scenarios: Good posture, Brief deviation, Sustained slouch, Recovery, Noisy boundary. Start, Stop, speed, and a Manual mode with pitch/roll sliders |
+| Simulation controls | Scenarios: Good posture, Brief deviation, Everyday movements, Sustained slouch, Slouch and recovery, Noisy boundary. Start, Stop, speed, and a Manual mode with pitch/roll sliders |
 | Trend chart | Deviation over the last ~60 s of simulated time, with a dashed threshold line and alert periods shaded |
 | Event history | State transitions, calibration and settings changes: time, scenario, from→to state, deviation, persistence duration. Clear-history action |
 | Software alert | On-screen alert banner (plus optional browser notification and sound). The text never says the vibration motor fired |
@@ -143,12 +143,14 @@ Layout: one responsive dashboard (grid on desktop, stacked on phones), with tabs
 **Scenario suite (`src/evaluation/`), shared by Vitest and the Tests tab:**
 1. Good posture: no alert expected
 2. Brief deviation (shorter than the persistence time): no alert expected
-3. Sustained slouch: alert expected after the persistence time
-4. Recovery: alert, then return to `GOOD_POSTURE` with the timer reset
-5. Noisy boundary: observational; reports state-flip count
-6. Calibration change: deviation recalculated against the new baseline
+3. Everyday movements (reach, turn, stretch, pick up; each under 5 s): no alert expected
+4. Sustained slouch: alert expected after the persistence time
+5. Slouch and recovery: alert, then return to `GOOD_POSTURE` with the timer reset
+6. Noisy boundary: observational; reports state-flip count
 
-Each labelled scenario (1–4) runs with 20 noise seeds. That defines the test set as 80 labelled runs, from which the suite reports a **confusion matrix** (alert expected vs alert raised), accuracy, precision, recall, F1, false alerts, missed alerts, and **detection delay** (from sustained-deviation start to alert). All numbers are computed live. Nothing is hard-coded, and every result is labelled as software behaviour on designed scenarios, not real-world accuracy.
+Calibration change (deviation recalculated against a new baseline) is covered by unit tests and a self-check.
+
+Each labelled scenario (1–5) runs with 20 noise seeds. That defines the test set as 100 labelled runs, from which the suite reports a **confusion matrix** (alert expected vs alert raised), accuracy, precision, recall, F1, false alerts, missed alerts, and **detection delay** (from sustained-deviation start to alert). The same no-alert runs are also scored as if every threshold crossing raised an alert (per-reading alerting), to show what the persistence timer removes. All numbers are computed live. Nothing is hard-coded, and every result is labelled as software behaviour on designed scenarios, not real-world accuracy.
 
 **UI verification:** desktop (1280 px) and phone (375 px) viewports in a browser, keyboard-only walkthrough, reload persistence check, and offline reload after install.
 
