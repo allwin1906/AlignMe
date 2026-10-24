@@ -162,6 +162,46 @@ export interface SimulatedSample {
   truth: Angles
 }
 
+/** Deterministic standard-normal noise for (seed, sample index, axis). Pure, so any sample can be regenerated. */
+export function noiseAt(seed: number, index: number, axis: 0 | 1): number {
+  const mixed = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(index + 1, 0xc2b2ae35) ^ (axis * 0x27d4eb2f)
+  return createRng(mixed).gaussian()
+}
+
+/** The reading a scenario produces `t` ms after it started, stamped with `timestamp`. */
+export function scenarioSample(
+  scenario: ScenarioDefinition,
+  seed: number,
+  t: number,
+  timestamp: number,
+  thresholdDeg = 15,
+  noiseSd = scenario.noiseSd,
+): SimulatedSample {
+  const truth = scenario.profile(t, { thresholdDeg })
+  const index = Math.round(t / SAMPLE_INTERVAL_MS)
+  return {
+    t,
+    truth,
+    reading: {
+      pitch: NEUTRAL_POSTURE.pitch + truth.pitch + noiseAt(seed, index, 0) * noiseSd,
+      roll: NEUTRAL_POSTURE.roll + truth.roll + noiseAt(seed, index, 1) * noiseSd,
+      timestamp,
+    },
+  }
+}
+
+export const MANUAL_NOISE_SD = 0.3
+
+/** A reading from the manual (slider) source: the chosen absolute angles plus light noise. */
+export function manualReading(angles: Angles, seed: number, timestamp: number): Reading {
+  const index = Math.round(timestamp / SAMPLE_INTERVAL_MS)
+  return {
+    pitch: angles.pitch + noiseAt(seed, index, 0) * MANUAL_NOISE_SD,
+    roll: angles.roll + noiseAt(seed, index, 1) * MANUAL_NOISE_SD,
+    timestamp,
+  }
+}
+
 export interface GenerateOptions {
   seed: number
   startTimestamp?: number
@@ -171,19 +211,9 @@ export interface GenerateOptions {
 
 export function generateReadings(scenario: ScenarioDefinition, options: GenerateOptions): SimulatedSample[] {
   const { seed, startTimestamp = 0, noiseSd = scenario.noiseSd, thresholdDeg = 15 } = options
-  const rng = createRng(seed)
   const samples: SimulatedSample[] = []
   for (let t = 0; t <= scenario.durationMs; t += SAMPLE_INTERVAL_MS) {
-    const truth = scenario.profile(t, { thresholdDeg })
-    samples.push({
-      t,
-      truth,
-      reading: {
-        pitch: NEUTRAL_POSTURE.pitch + truth.pitch + rng.gaussian() * noiseSd,
-        roll: NEUTRAL_POSTURE.roll + truth.roll + rng.gaussian() * noiseSd,
-        timestamp: startTimestamp + t,
-      },
-    })
+    samples.push(scenarioSample(scenario, seed, t, startTimestamp + t, thresholdDeg, noiseSd))
   }
   return samples
 }
