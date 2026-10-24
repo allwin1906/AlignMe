@@ -1,3 +1,4 @@
+import { Pause } from 'lucide-react'
 import type { EngineOutput, PostureState, Settings } from '@/engine'
 import { POSTURE_META } from '@/lib/posture'
 import { cn } from '@/lib/cn'
@@ -20,27 +21,42 @@ function arc(from: number, to: number, radius = R) {
   return `M ${x0} ${y0} A ${radius} ${radius} 0 ${to - from > 180 ? 1 : 0} 1 ${x1} ${y1}`
 }
 
+const deviationText = (output: EngineOutput | null) => (output?.deviation == null ? '—' : `${output.deviation.toFixed(1)}°`)
+
 interface HeroGaugeProps {
   posture: PostureState
   output: EngineOutput | null
   settings: Settings
+  /** False when the simulation is paused or a scenario has finished. */
+  running: boolean
   canCalibrate: boolean
   onCalibrate(): void
 }
 
 /** The posture gauge: deviation on a 0–45° dial, with the zone beyond the threshold hatched. */
-export function HeroGauge({ posture, output, settings, canCalibrate, onCalibrate }: HeroGaugeProps) {
+export function HeroGauge({ posture, output, settings, running, canCalibrate, onCalibrate }: HeroGaugeProps) {
   const calibrated = posture !== 'NOT_CALIBRATED'
   // Calibrated but no reading since load: show nothing as live until data arrives.
   const waiting = calibrated && output === null
+  // Paused or finished: the last state is history, not a live measurement.
+  const paused = calibrated && output !== null && !running
   const baseMeta = POSTURE_META[posture]
-  const meta = waiting ? { ...baseMeta, label: 'Ready', description: 'Reference posture saved. Press play to stream readings.' } : baseMeta
+  const meta = waiting
+    ? { ...baseMeta, label: 'Ready', description: 'Reference posture saved. Press play to stream readings.' }
+    : paused
+      ? {
+          ...POSTURE_META.NOT_CALIBRATED,
+          icon: Pause,
+          label: 'Paused',
+          description: `Last reading ${deviationText(output)}, ${baseMeta.label.toLowerCase()}. Press play to resume monitoring.`,
+        }
+      : baseMeta
   const Icon = meta.icon
-  const live = calibrated && !waiting
+  const live = calibrated && !waiting && !paused
   const deviation = live ? (output?.deviation ?? 0) : 0
   const valueAngle = angleFor(deviation)
   const thresholdAngle = angleFor(settings.thresholdDeg)
-  const deviating = posture === 'TEMPORARY_DEVIATION' || posture === 'POOR_POSTURE_ALERT'
+  const deviating = live && (posture === 'TEMPORARY_DEVIATION' || posture === 'POOR_POSTURE_ALERT')
   const progress = deviating ? Math.min(1, (output?.persistenceSeconds ?? 0) / settings.persistenceSeconds) : 0
 
   const ticks = []

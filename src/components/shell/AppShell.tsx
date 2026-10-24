@@ -47,7 +47,7 @@ export function AppShell({ model, tab: controlledTab, onTabChange, className }: 
   }
   const [settingsOpen, setSettingsOpen] = useState(false)
   const posture = model.state.engine.postureState
-  const alert = useAlertFeedback(posture, model.soundOn)
+  const alert = useAlertFeedback(posture, model.soundOn, model.state.running)
   const unseenAlerts = model.state.stats.alerts
 
   return (

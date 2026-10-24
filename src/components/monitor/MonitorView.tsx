@@ -38,7 +38,7 @@ export function MonitorView({ model, onOpenSettings }: { model: PostureModel; on
             }
           />
         </div>
-        <HeroGauge posture={engine.postureState} output={latest} settings={engine.settings} canCalibrate={canCalibrate} onCalibrate={actions.calibrate} />
+        <HeroGauge posture={engine.postureState} output={latest} settings={engine.settings} running={state.running} canCalibrate={canCalibrate} onCalibrate={actions.calibrate} />
         <div className="grid grid-cols-2 gap-3">
           <Tile
             tone="paper"

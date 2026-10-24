@@ -84,12 +84,14 @@ export function TestsView() {
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
         <section aria-labelledby="metrics-title" className="rounded-[32px] bg-graphite p-5">
           <h2 id="metrics-title" className="text-2xl font-medium">
-            Scenario evaluation
+            Robustness on designed scenarios
           </h2>
           <p className="mt-1 text-sm text-mist">
             {report.totalRuns} labelled simulated runs: {report.scenarios.length} scenarios × {report.seedsPerScenario} noise seeds, at threshold{' '}
             {report.settings.thresholdDeg}°, delay {report.settings.persistenceSeconds} s, smoothing {report.settings.smoothingWindow}. A run is labelled
-            “alert expected” when its noise-free signal stays past the threshold for the full delay.
+            “alert expected” when its noise-free signal stays past the threshold for the full delay, so these figures show how well
+            the detector holds up against simulated noise. They are not a real-world accuracy figure and cannot be compared with
+            results measured on people.
           </p>
 
           <table className="mt-4 w-full table-fixed border-separate border-spacing-1.5 text-center">

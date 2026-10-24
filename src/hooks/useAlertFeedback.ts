@@ -27,8 +27,8 @@ function chime() {
   }
 }
 
-/** Shows the alert banner when the engine enters POOR_POSTURE_ALERT and hides it on recovery. */
-export function useAlertFeedback(posture: PostureState, soundOn: boolean) {
+/** Shows the alert banner when the engine enters POOR_POSTURE_ALERT and hides it on recovery or when monitoring stops. */
+export function useAlertFeedback(posture: PostureState, soundOn: boolean, running: boolean) {
   const previous = useRef(posture)
   const [visible, setVisible] = useState(false)
 
@@ -37,9 +37,9 @@ export function useAlertFeedback(posture: PostureState, soundOn: boolean) {
       setVisible(true)
       if (soundOn) chime()
     }
-    if (posture !== 'POOR_POSTURE_ALERT') setVisible(false)
+    if (posture !== 'POOR_POSTURE_ALERT' || !running) setVisible(false)
     previous.current = posture
-  }, [posture, soundOn])
+  }, [posture, soundOn, running])
 
   return { visible, dismiss: () => setVisible(false) }
 }
