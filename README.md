@@ -29,6 +29,14 @@ npm run preview   # serve the production build at http://localhost:4173 (use thi
 
 Defaults: threshold 15°, alert delay 10 s, smoothing 3 readings, 10 Hz simulated sampling. These are prototype values, not clinical recommendations.
 
+## PPT screenshots and demo video
+Both need the dev server running (`npm run dev`) and use Playwright's fake clock, so every run gives the same result.
+```bash
+npm run screenshots   # raw screens → docs/screenshots/raw/, slide images → docs/screenshots/slide-20…23.png
+npm run demo:record   # 86 s explainer video → recordings/AlignMe_Demo.mp4 (needs ffmpeg)
+```
+Open http://localhost:5173/demo.html to watch the demo live in a browser.
+
 ## Project structure
 ```text
 src/
@@ -38,10 +46,13 @@ src/
 ├── app/           Pure reducer: simulated clock, sources, session stats, history
 ├── storage/       Validated, bounded localStorage persistence
 ├── hooks/         usePostureEngine: the only bridge between React and the engine
-└── components/    Monitor, Insights, Tests and About views
+├── components/    Monitor, Insights, Tests and About views
+└── demo/          Demo video stage: illustrated wearer, live readings, phone frame
+scripts/           Screenshot, slide and video capture (Playwright)
 docs/
 ├── IMPLEMENTATION_PLAN.md
-└── DEMO_VIDEO_SCRIPT.md
+├── DEMO_VIDEO_SCRIPT.md
+└── screenshots/   Slide images for PPT slides 20–23
 ```
 
 ## Design notes
